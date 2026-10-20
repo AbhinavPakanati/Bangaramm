@@ -10,8 +10,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Dancing+Script:wght@500;600&display=swap" rel="stylesheet">
 <style>
 :root{
-  --cream:#fdf8f3; --blush:#f8e4e4; --rose:#d98ba0; --deep:#a9506b; --ink:#4a3540; --sage:#8fa68a; --gold:#d9b27c;
-  --petal:#fff7f7; --petal-edge:#f3c6d2;
+  --cream:#fdf8f3; --blush:#f8e4e4; --rose:#d98ba0; --deep:#a9506b; --ink:#4a3540; --petal-edge:#f3c6d2;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
@@ -23,8 +22,10 @@ body{
     radial-gradient(circle at 85% 40%, #f3e8f7 0, transparent 40%),
     radial-gradient(circle at 20% 85%, #fdeee0 0, transparent 40%),
     var(--cream);
-  line-height:1.85; font-size:1.3rem; overflow-x:hidden;
+  line-height:1.85; font-size:1.3rem; overflow-x:hidden; min-height:100vh;
 }
+body.locked{overflow:hidden;height:100vh}
+
 #petals{position:fixed;inset:0;pointer-events:none;z-index:5;overflow:hidden}
 .petal{position:absolute;top:-30px;width:14px;height:20px;background:linear-gradient(135deg,#fff,var(--petal-edge));
   border-radius:80% 0 80% 0;opacity:.8;animation:fall linear infinite}
@@ -34,17 +35,75 @@ body{
   100%{transform:translate(-20px,108vh) rotate(360deg)}
 }
 
-/* HERO */
-.hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2rem;position:relative}
-.hero svg.big{width:min(300px,70vw);height:auto;filter:drop-shadow(0 12px 24px rgba(169,80,107,.2));animation:sway 7s ease-in-out infinite;transform-origin:50% 100%}
-@keyframes sway{0%,100%{transform:rotate(-2deg)}50%{transform:rotate(2deg)}}
-.hero h1{font-family:'Dancing Script',cursive;font-weight:600;font-size:clamp(2.8rem,10vw,5rem);color:var(--deep);margin-top:1rem;line-height:1.15}
-.hero p{font-style:italic;color:#7a5f6b;font-size:1.3rem;margin-top:.5rem}
-.scroll{position:absolute;bottom:1.8rem;font-size:.95rem;letter-spacing:.3em;text-transform:uppercase;color:var(--rose);animation:bob 2.2s ease-in-out infinite}
-@keyframes bob{50%{transform:translateY(8px)}}
+/* ===== GREETING CARD INTRO ===== */
+#intro{
+  position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:
+    radial-gradient(circle at 20% 20%, #fde9ee 0, transparent 45%),
+    radial-gradient(circle at 80% 80%, #f3e8f7 0, transparent 45%),
+    #fbefe9;
+  transition:opacity 1s ease, visibility 1s;
+}
+#intro.gone{opacity:0;visibility:hidden;pointer-events:none}
+.scene{perspective:1600px;width:min(340px,80vw);aspect-ratio:3/4;position:relative;cursor:pointer}
+.card{position:absolute;inset:0;transform-style:preserve-3d;transition:transform 1s ease}
+.card.shift{transform:translateX(50%)}  /* centers the open card */
+.inside{
+  position:absolute;inset:0;border-radius:6px 18px 18px 6px;
+  background:linear-gradient(160deg,#fffdfb,#fbe9ee);
+  border:1px solid #f0d5dc;box-shadow:0 20px 50px rgba(169,80,107,.18);
+  display:flex;align-items:center;justify-content:center;
+}
+.inside span{font-family:'Dancing Script',cursive;font-size:2rem;color:var(--deep);opacity:.0;transition:opacity .6s .5s}
+.card.open .inside span{opacity:1}
+.cover{
+  position:absolute;inset:0;transform-origin:left center;transition:transform 1.3s cubic-bezier(.65,0,.25,1);
+  transform-style:preserve-3d;
+}
+.card.open .cover{transform:rotateY(-170deg)}
+.face{
+  position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:6px 18px 18px 6px;
+}
+.front{
+  background:linear-gradient(155deg,#fff6f6,#f9d9e2);border:1px solid #f0c9d4;
+  box-shadow:0 20px 50px rgba(169,80,107,.25);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.6rem;text-align:center;padding:1rem;
+}
+.front::before{content:"";position:absolute;inset:12px;border:1.5px dashed #e3a8b9;border-radius:4px 12px 12px 4px;pointer-events:none}
+.front svg{width:46%;height:auto;opacity:.9}
+.front h2{font-family:'Dancing Script',cursive;font-size:2.2rem;color:var(--deep);font-weight:600}
+.back{background:#fdeef2;transform:rotateY(180deg);border:1px solid #f0d5dc}
+.hint{margin-top:2.2rem;font-style:italic;letter-spacing:.15em;color:var(--rose);font-size:1.15rem;animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.35}}
+#intro.opened .hint{opacity:0;animation:none;transition:opacity .4s}
 
-/* LETTER */
-.letter{max-width:720px;margin:0 auto;padding:3rem 1.5rem 2rem;position:relative;z-index:2}
+/* Pop-up lily */
+#bloom{
+  position:fixed;left:50%;top:50%;width:min(420px,85vw);height:min(420px,85vw);
+  margin:calc(min(420px,85vw) / -2) 0 0 calc(min(420px,85vw) / -2);
+  z-index:60;pointer-events:none;opacity:0;transform:scale(0) rotate(-40deg);
+}
+#bloom svg{width:100%;height:100%;filter:drop-shadow(0 14px 30px rgba(169,80,107,.35))}
+#bloom.pop{animation:popup 3s cubic-bezier(.2,.8,.3,1) forwards}
+@keyframes popup{
+  0%{opacity:0;transform:scale(0) rotate(-40deg)}
+  30%{opacity:1;transform:scale(1.12) rotate(6deg)}
+  45%{transform:scale(1) rotate(0deg)}
+  75%{opacity:1;transform:scale(1.04) rotate(0deg)}
+  100%{opacity:0;transform:scale(1.5) rotate(10deg)}
+}
+.spark{position:fixed;z-index:59;width:10px;height:14px;border-radius:80% 0 80% 0;background:linear-gradient(135deg,#fff,#f3a9be);pointer-events:none;opacity:0}
+
+/* ===== LETTER ===== */
+#letterPage{opacity:0;transition:opacity 1.5s ease}
+#letterPage.visible{opacity:1}
+.hero{padding:4rem 1.5rem 1rem;text-align:center}
+.hero svg.big{width:min(200px,55vw);height:auto;filter:drop-shadow(0 12px 24px rgba(169,80,107,.2));animation:sway 7s ease-in-out infinite;transform-origin:50% 100%}
+@keyframes sway{0%,100%{transform:rotate(-2deg)}50%{transform:rotate(2deg)}}
+.hero h1{font-family:'Dancing Script',cursive;font-weight:600;font-size:clamp(2.6rem,9vw,4.4rem);color:var(--deep);line-height:1.15}
+.hero p{font-style:italic;color:#7a5f6b;font-size:1.25rem;margin-top:.3rem}
+
+.letter{max-width:720px;margin:0 auto;padding:2rem 1.5rem;position:relative;z-index:2}
 .paper{background:rgba(255,255,255,.7);backdrop-filter:blur(6px);border:1px solid #f3dfe3;border-radius:22px;
   padding:clamp(1.8rem,5vw,3.5rem);box-shadow:0 20px 60px rgba(169,80,107,.12)}
 .paper .salutation{font-family:'Dancing Script',cursive;font-size:2.4rem;color:var(--deep);margin-bottom:1.5rem}
@@ -54,31 +113,17 @@ body{
 .divider{display:flex;justify-content:center;gap:.8rem;margin:2.5rem 0}
 .divider svg{width:34px;height:34px}
 
-/* GALLERY */
-.gallery{max-width:1000px;margin:0 auto;padding:2rem 1.5rem 3rem;text-align:center}
-.gallery h2{font-family:'Dancing Script',cursive;font-size:2.6rem;color:var(--deep);margin-bottom:.3rem}
-.gallery .sub{font-style:italic;color:#7a5f6b;margin-bottom:2rem}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1.5rem}
-.frame{position:relative;aspect-ratio:3/4;border-radius:200px 200px 18px 18px;overflow:hidden;
-  background:linear-gradient(160deg,#fff4f6,#f9dfe7);border:6px solid #fff;box-shadow:0 14px 40px rgba(169,80,107,.18);
-  transition:transform .5s}
-.frame:hover{transform:translateY(-8px) rotate(-1deg)}
-.frame:nth-child(2){margin-top:2rem}
-.frame svg{position:absolute;inset:0;width:100%;height:100%}
-.frame img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-
-/* FINALE */
-.finale{text-align:center;padding:4rem 1.5rem 5rem;position:relative;z-index:2}
+.finale{text-align:center;padding:3rem 1.5rem 4rem;position:relative;z-index:2}
 .finale .shout{font-size:clamp(1.3rem,4.5vw,2rem);font-weight:600;letter-spacing:.04em;color:var(--deep);max-width:760px;margin:0 auto 1.5rem;line-height:1.6}
 .finale .hearts{font-size:2rem;letter-spacing:.4rem;animation:beat 1.6s ease-in-out infinite;display:inline-block}
 @keyframes beat{0%,100%{transform:scale(1)}15%{transform:scale(1.18)}30%{transform:scale(1)}45%{transform:scale(1.12)}}
 .sign{font-family:'Dancing Script',cursive;font-size:2.2rem;color:var(--deep);margin-top:2rem}
 footer{text-align:center;padding:1.5rem;font-size:.95rem;color:#a58b95;position:relative;z-index:2}
 
-@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.paper p{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}.paper p{opacity:1;transform:none}}
 </style>
 </head>
-<body>
+<body class="locked">
 
 <!-- Reusable lily illustration -->
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -87,27 +132,25 @@ footer{text-align:center;padding:1.5rem;font-size:.95rem;color:#a58b95;position:
       <stop offset="0" stop-color="#f3b7c6"/><stop offset=".35" stop-color="#fde6ec"/><stop offset="1" stop-color="#ffffff"/>
     </linearGradient>
     <symbol id="lily" viewBox="-130 -130 260 260">
-      <g id="petalset">
-        <g fill="url(#pg)" stroke="#e9a9ba" stroke-width="1.2" stroke-linejoin="round">
-          <path transform="rotate(30)"  d="M0,0 C-22,-30 -26,-80 0,-118 C26,-80 22,-30 0,0Z"/>
-          <path transform="rotate(150)" d="M0,0 C-22,-30 -26,-80 0,-118 C26,-80 22,-30 0,0Z"/>
-          <path transform="rotate(270)" d="M0,0 C-22,-30 -26,-80 0,-118 C26,-80 22,-30 0,0Z"/>
-        </g>
-        <g fill="url(#pg)" stroke="#e9a9ba" stroke-width="1.2" stroke-linejoin="round">
-          <path transform="rotate(90)"  d="M0,0 C-26,-30 -30,-82 0,-122 C30,-82 26,-30 0,0Z"/>
-          <path transform="rotate(210)" d="M0,0 C-26,-30 -30,-82 0,-122 C30,-82 26,-30 0,0Z"/>
-          <path transform="rotate(330)" d="M0,0 C-26,-30 -30,-82 0,-122 C30,-82 26,-30 0,0Z"/>
-        </g>
-        <g stroke="#d98ba0" stroke-width="1" fill="none" opacity=".55" stroke-linecap="round">
-          <path transform="rotate(30)"  d="M0,-10 L0,-90"/><path transform="rotate(90)"  d="M0,-10 L0,-92"/>
-          <path transform="rotate(150)" d="M0,-10 L0,-90"/><path transform="rotate(210)" d="M0,-10 L0,-92"/>
-          <path transform="rotate(270)" d="M0,-10 L0,-90"/><path transform="rotate(330)" d="M0,-10 L0,-92"/>
-        </g>
-        <g fill="#c9638a" opacity=".5">
-          <circle cx="-6" cy="-40" r="1.6"/><circle cx="7" cy="-52" r="1.4"/><circle cx="-3" cy="-64" r="1.3"/>
-          <circle cx="40" cy="-14" r="1.5"/><circle cx="52" cy="-22" r="1.3"/><circle cx="-36" cy="22" r="1.5"/>
-          <circle cx="-48" cy="28" r="1.3"/><circle cx="14" cy="42" r="1.5"/><circle cx="20" cy="56" r="1.3"/>
-        </g>
+      <g fill="url(#pg)" stroke="#e9a9ba" stroke-width="1.2" stroke-linejoin="round">
+        <path transform="rotate(30)"  d="M0,0 C-22,-30 -26,-80 0,-118 C26,-80 22,-30 0,0Z"/>
+        <path transform="rotate(150)" d="M0,0 C-22,-30 -26,-80 0,-118 C26,-80 22,-30 0,0Z"/>
+        <path transform="rotate(270)" d="M0,0 C-22,-30 -26,-80 0,-118 C26,-80 22,-30 0,0Z"/>
+      </g>
+      <g fill="url(#pg)" stroke="#e9a9ba" stroke-width="1.2" stroke-linejoin="round">
+        <path transform="rotate(90)"  d="M0,0 C-26,-30 -30,-82 0,-122 C30,-82 26,-30 0,0Z"/>
+        <path transform="rotate(210)" d="M0,0 C-26,-30 -30,-82 0,-122 C30,-82 26,-30 0,0Z"/>
+        <path transform="rotate(330)" d="M0,0 C-26,-30 -30,-82 0,-122 C30,-82 26,-30 0,0Z"/>
+      </g>
+      <g stroke="#d98ba0" stroke-width="1" fill="none" opacity=".55" stroke-linecap="round">
+        <path transform="rotate(30)"  d="M0,-10 L0,-90"/><path transform="rotate(90)"  d="M0,-10 L0,-92"/>
+        <path transform="rotate(150)" d="M0,-10 L0,-90"/><path transform="rotate(210)" d="M0,-10 L0,-92"/>
+        <path transform="rotate(270)" d="M0,-10 L0,-90"/><path transform="rotate(330)" d="M0,-10 L0,-92"/>
+      </g>
+      <g fill="#c9638a" opacity=".5">
+        <circle cx="-6" cy="-40" r="1.6"/><circle cx="7" cy="-52" r="1.4"/><circle cx="-3" cy="-64" r="1.3"/>
+        <circle cx="40" cy="-14" r="1.5"/><circle cx="52" cy="-22" r="1.3"/><circle cx="-36" cy="22" r="1.5"/>
+        <circle cx="-48" cy="28" r="1.3"/><circle cx="14" cy="42" r="1.5"/><circle cx="20" cy="56" r="1.3"/>
       </g>
       <g stroke="#a9a46a" stroke-width="2" stroke-linecap="round" fill="none">
         <path d="M0,0 L-30,-38"/><path d="M0,0 L-10,-46"/><path d="M0,0 L14,-44"/>
@@ -133,66 +176,69 @@ footer{text-align:center;padding:1.5rem;font-size:.95rem;color:#a58b95;position:
 
 <div id="petals" aria-hidden="true"></div>
 
-<section class="hero">
-  <svg class="big" viewBox="-130 -130 260 330" aria-label="A lily">
-    <path d="M0,0 C4,60 -4,110 2,200" stroke="#8fa68a" stroke-width="6" fill="none" stroke-linecap="round"/>
-    <path d="M2,150 C-40,120 -70,125 -95,150 C-60,160 -30,160 2,150Z" fill="#a9c2a4"/>
-    <path d="M2,120 C40,90 70,95 95,120 C60,130 30,130 2,120Z" fill="#9bb596"/>
-    <use href="#lily" x="-130" y="-130" width="260" height="260"/>
-  </svg>
-  <h1>For You, My Love</h1>
-  <p>a letter from my heart to yours</p>
-  <div class="scroll">scroll</div>
-</section>
-
-<section class="letter">
-  <div class="paper">
-    <div class="salutation">My love,</div>
-
-    <p>I don't think you'll ever truly understand how much you mean to me, no matter how many times I try to put it into words. Sometimes I have so many things I want to tell you, so many feelings I want you to understand, but words never seem enough to explain what's in my heart. You've become such a big part of my life without me even realizing when it happened. Somewhere along the way, you became the person I want to share all my little moments with, the first person I think of when something good happens, and the one I wish I could talk to whenever life gets hard. Even on the most ordinary days, just having you in my life makes everything feel a little more special.</p>
-
-    <div class="divider"><svg><use href="#bud"/></svg></div>
-
-    <p>I hope you know that you never have to be perfect for me to love you. Even on the days when you feel insecure, when you doubt yourself, or when you think you're not doing enough, I hope you remember that you're more than enough for me. I love the way you think, the way you speak, your kindness, your little habits — especially your knuckle cracking and the way you comfort me — and all the things that make you uniquely you. I love the sides of you that you show everyone and the softer parts that you only let a few people see. You don't have to hide your bad days or pretend to be okay around me. I want to be there for you when you're happy, but I also want to be there when things aren't going your way.</p>
-
-    <p>I care about the little things more than you might realize. I wonder if you've eaten, if you've had enough rest, if something is on your mind, or if you're keeping something to yourself because you don't want to bother anyone. I want to know how your day went, what made you smile, what upset you, and even the random things that might not seem important to anyone else. It's not something I force myself to do — it's just what happens when someone means this much to you. Your feelings matter to me, your happiness matters to me, and even when I can't fix whatever you're going through, I still want you to know that you don't have to face everything alone.</p>
-
-    <div class="divider"><svg><use href="#bud"/></svg><svg><use href="#bud"/></svg><svg><use href="#bud"/></svg></div>
-
-    <p>When I look back at the moments we've shared, I realize how many little memories have become so precious to me. The conversations, the laughter, the random talks, the times you've made me smile without even trying, and all those moments that might seem small but mean so much to me. You've brought a kind of happiness into my life that I never want to take for granted. You've made me realize that loving someone isn't only about the big romantic moments, but it's also about checking on them, listening to them, remembering the smallest details, and choosing to care about them even on the most ordinary days.</p>
-
-    <p>So whenever you have a bad day, whenever you feel like you're difficult to love, or whenever you start questioning your place in my life, please remember this: you mean so much more to me than I could ever explain. You don't need to earn my care by being happy all the time, and you don't need to have everything figured out to deserve love. I cherish you for who you are, not for who you think you need to become. I want to see you grow, achieve everything you dream of, and become the happiest version of yourself, and I hope I can be someone who makes that journey a little more beautiful. I love you more than these words could ever show, and if there's one thing I hope you never doubt, it's that you are deeply loved, genuinely valued, and so incredibly special to me.</p>
-  </div>
-</section>
-
-<section class="gallery">
-  <h2>Lilies, for you</h2>
-  <p class="sub">because you're soft, graceful, and beautiful in every season</p>
-  <div class="grid">
-    <!-- Add your own photos to the /photos folder as lily1.jpg, lily2.jpg, lily3.jpg.
-         Until then, the hand-drawn lilies show. -->
-    <div class="frame">
-      <svg viewBox="-130 -130 260 260"><rect x="-130" y="-130" width="260" height="260" fill="none"/><use href="#lily" x="-100" y="-100" width="200" height="200"/></svg>
-      <img src="photos/lily1.jpg" alt="Lily" onerror="this.remove()">
-    </div>
-    <div class="frame">
-      <svg viewBox="-60 -90 120 180"><use href="#bud" x="-45" y="-80" width="90" height="160"/></svg>
-      <img src="photos/lily2.jpg" alt="Lily" onerror="this.remove()">
-    </div>
-    <div class="frame">
-      <svg viewBox="-130 -130 260 260"><use href="#lily" x="-100" y="-100" width="200" height="200" transform="rotate(30)"/></svg>
-      <img src="photos/lily3.jpg" alt="Lily" onerror="this.remove()">
+<!-- GREETING CARD -->
+<div id="intro">
+  <div class="scene" id="scene" role="button" tabindex="0" aria-label="Open the card">
+    <div class="card" id="card">
+      <div class="inside"><span>for you 💌</span></div>
+      <div class="cover">
+        <div class="face front">
+          <svg viewBox="-130 -130 260 260"><use href="#lily" x="-130" y="-130" width="260" height="260"/></svg>
+          <h2>For You,<br>My Love</h2>
+        </div>
+        <div class="face back"></div>
+      </div>
     </div>
   </div>
-</section>
+  <div class="hint">tap to open</div>
+</div>
 
-<section class="finale">
-  <p class="shout">BANGARAMMMM I LOVE YOU SOOO MUCH, AND I'M WRITING THIS CUZ I FEEL LIKE WHAT I SAID IN THE LETTER WASN'T ENOUGH. YOU ARE MY HAPPY PLACE AND THE ONE I WANNA SHARE EVERYTHING WITH. I LOVE YOU SOOOO MUCH, AND SOMETIMES WORDS AREN'T ENOUGH FOR ME TO DESCRIBE THE WAY YOU MAKE ME FEEL.</p>
-  <div class="hearts">🫶 🫶 🫶 🫶</div>
-  <div class="sign">Forever yours</div>
-</section>
+<!-- Lily that pops up -->
+<div id="bloom" aria-hidden="true">
+  <svg viewBox="-130 -130 260 260"><use href="#lily" x="-130" y="-130" width="260" height="260"/></svg>
+</div>
 
-<footer>made with love 🌸</footer>
+<!-- LETTER -->
+<main id="letterPage">
+  <section class="hero">
+    <svg class="big" viewBox="-130 -130 260 330" aria-label="A lily">
+      <path d="M0,0 C4,60 -4,110 2,200" stroke="#8fa68a" stroke-width="6" fill="none" stroke-linecap="round"/>
+      <path d="M2,150 C-40,120 -70,125 -95,150 C-60,160 -30,160 2,150Z" fill="#a9c2a4"/>
+      <path d="M2,120 C40,90 70,95 95,120 C60,130 30,130 2,120Z" fill="#9bb596"/>
+      <use href="#lily" x="-130" y="-130" width="260" height="260"/>
+    </svg>
+    <h1>For You, My Love</h1>
+    <p>a letter from my heart to yours</p>
+  </section>
+
+  <section class="letter">
+    <div class="paper">
+      <div class="salutation">My love,</div>
+
+      <p>I don't think you'll ever truly understand how much you mean to me, no matter how many times I try to put it into words. Sometimes I have so many things I want to tell you, so many feelings I want you to understand, but words never seem enough to explain what's in my heart. You've become such a big part of my life without me even realizing when it happened. Somewhere along the way, you became the person I want to share all my little moments with, the first person I think of when something good happens, and the one I wish I could talk to whenever life gets hard. Even on the most ordinary days, just having you in my life makes everything feel a little more special.</p>
+
+      <div class="divider"><svg><use href="#bud"/></svg></div>
+
+      <p>I hope you know that you never have to be perfect for me to love you. Even on the days when you feel insecure, when you doubt yourself, or when you think you're not doing enough, I hope you remember that you're more than enough for me. I love the way you think, the way you speak, your kindness, your little habits — especially your knuckle cracking and the way you comfort me — and all the things that make you uniquely you. I love the sides of you that you show everyone and the softer parts that you only let a few people see. You don't have to hide your bad days or pretend to be okay around me. I want to be there for you when you're happy, but I also want to be there when things aren't going your way.</p>
+
+      <p>I care about the little things more than you might realize. I wonder if you've eaten, if you've had enough rest, if something is on your mind, or if you're keeping something to yourself because you don't want to bother anyone. I want to know how your day went, what made you smile, what upset you, and even the random things that might not seem important to anyone else. It's not something I force myself to do — it's just what happens when someone means this much to you. Your feelings matter to me, your happiness matters to me, and even when I can't fix whatever you're going through, I still want you to know that you don't have to face everything alone.</p>
+
+      <div class="divider"><svg><use href="#bud"/></svg><svg><use href="#bud"/></svg><svg><use href="#bud"/></svg></div>
+
+      <p>When I look back at the moments we've shared, I realize how many little memories have become so precious to me. The conversations, the laughter, the random talks, the times you've made me smile without even trying, and all those moments that might seem small but mean so much to me. You've brought a kind of happiness into my life that I never want to take for granted. You've made me realize that loving someone isn't only about the big romantic moments, but it's also about checking on them, listening to them, remembering the smallest details, and choosing to care about them even on the most ordinary days.</p>
+
+      <p>So whenever you have a bad day, whenever you feel like you're difficult to love, or whenever you start questioning your place in my life, please remember this: you mean so much more to me than I could ever explain. You don't need to earn my care by being happy all the time, and you don't need to have everything figured out to deserve love. I cherish you for who you are, not for who you think you need to become. I want to see you grow, achieve everything you dream of, and become the happiest version of yourself, and I hope I can be someone who makes that journey a little more beautiful. I love you more than these words could ever show, and if there's one thing I hope you never doubt, it's that you are deeply loved, genuinely valued, and so incredibly special to me.</p>
+    </div>
+  </section>
+
+  <section class="finale">
+    <p class="shout">BANGARAMMMM I LOVE YOU SOOO MUCH, AND I'M WRITING THIS CUZ I FEEL LIKE WHAT I SAID IN THE LETTER WASN'T ENOUGH. YOU ARE MY HAPPY PLACE AND THE ONE I WANNA SHARE EVERYTHING WITH. I LOVE YOU SOOOO MUCH, AND SOMETIMES WORDS AREN'T ENOUGH FOR ME TO DESCRIBE THE WAY YOU MAKE ME FEEL.</p>
+    <div class="hearts">🫶 🫶 🫶 🫶</div>
+    <div class="sign">Forever yours</div>
+  </section>
+
+  <footer>made with love 🌸</footer>
+</main>
 
 <script>
 // falling petals
@@ -209,11 +255,53 @@ footer{text-align:center;padding:1.5rem;font-size:.95rem;color:#a58b95;position:
     box.appendChild(p);
   }
 })();
+
 // reveal paragraphs on scroll
 var io=new IntersectionObserver(function(es){
   es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('show');io.unobserve(e.target)}});
 },{threshold:.15});
 document.querySelectorAll('.paper p').forEach(function(p){io.observe(p)});
+
+// greeting card: click -> card opens -> lily pops up and fades -> letter appears
+(function(){
+  var scene=document.getElementById('scene'),
+      card=document.getElementById('card'),
+      intro=document.getElementById('intro'),
+      bloom=document.getElementById('bloom'),
+      page=document.getElementById('letterPage'),
+      started=false;
+
+  function sparkle(){
+    for(var i=0;i<18;i++){
+      var s=document.createElement('div');s.className='spark';
+      var a=Math.random()*Math.PI*2, d=120+Math.random()*180;
+      s.style.left='50%';s.style.top='50%';
+      document.body.appendChild(s);
+      s.animate([
+        {opacity:1,transform:'translate(0,0) rotate(0deg) scale(.6)'},
+        {opacity:0,transform:'translate('+Math.cos(a)*d+'px,'+Math.sin(a)*d+'px) rotate('+(Math.random()*360)+'deg) scale(1.2)'}
+      ],{duration:1600+Math.random()*900,easing:'ease-out',fill:'forwards'});
+      setTimeout(function(el){el.remove()}.bind(null,s),2800);
+    }
+  }
+
+  function start(){
+    if(started) return; started=true;
+    card.classList.add('open','shift');
+    intro.classList.add('opened');
+    // lily pops up once the card is open
+    setTimeout(function(){bloom.classList.add('pop');sparkle();},900);
+    // intro fades out, letter appears
+    setTimeout(function(){
+      intro.classList.add('gone');
+      document.body.classList.remove('locked');
+      page.classList.add('visible');
+      window.scrollTo(0,0);
+    },3600);
+  }
+  scene.addEventListener('click',start);
+  scene.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();start();}});
+})();
 </script>
 </body>
 </html>
